@@ -493,3 +493,371 @@ local function ToggleInfiniteJump()
         InfJumpToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
     end
 end
+
+local function ToggleClickTP()
+    CheatStates.ClickTP = not CheatStates.ClickTP
+    if CheatStates.ClickTP then
+        Connections.ClickTP = Mouse.Button1Down:Connect(function()
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+                local character = LocalPlayer.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, 5, 0))
+                end
+            end
+        end)
+        ClickTPToggle.Text = "ON"
+        ClickTPToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.ClickTP then
+            Connections.ClickTP:Disconnect()
+        end
+        ClickTPToggle.Text = "OFF"
+        ClickTPToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleSpinbot()
+    CheatStates.Spinbot = not CheatStates.Spinbot
+    if CheatStates.Spinbot then
+        SpinSpeed = tonumber(SpinSpeedInput.Text) or 10
+        Connections.Spinbot = RunService.Heartbeat:Connect(function()
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(SpinSpeed), 0)
+            end
+        end)
+        SpinbotToggle.Text = "ON"
+        SpinbotToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.Spinbot then
+            Connections.Spinbot:Disconnect()
+        end
+        SpinbotToggle.Text = "OFF"
+        SpinbotToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleGodmode()
+    CheatStates.Godmode = not CheatStates.Godmode
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("Humanoid") then
+        if CheatStates.Godmode then
+            character.Humanoid.MaxHealth = math.huge
+            character.Humanoid.Health = math.huge
+            GodmodeToggle.Text = "ON"
+            GodmodeToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+        else
+            character.Humanoid.MaxHealth = 100
+            character.Humanoid.Health = 100
+            GodmodeToggle.Text = "OFF"
+            GodmodeToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+        end
+    end
+end
+
+local function ToggleAutoRespawn()
+    CheatStates.AutoRespawn = not CheatStates.AutoRespawn
+    if CheatStates.AutoRespawn then
+        Connections.AutoRespawn = LocalPlayer.CharacterRemoving:Connect(function()
+            wait(1)
+            LocalPlayer:LoadCharacter()
+        end)
+        AutoRespawnToggle.Text = "ON"
+        AutoRespawnToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.AutoRespawn then
+            Connections.AutoRespawn:Disconnect()
+        end
+        AutoRespawnToggle.Text = "OFF"
+        AutoRespawnToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleAntiAFK()
+    CheatStates.AntiAFK = not CheatStates.AntiAFK
+    if CheatStates.AntiAFK then
+        Connections.AntiAFK = RunService.Heartbeat:Connect(function()
+            local VirtualUser = game:service'VirtualUser'
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
+        AntiAFKToggle.Text = "ON"
+        AntiAFKToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.AntiAFK then
+            Connections.AntiAFK:Disconnect()
+        end
+        AntiAFKToggle.Text = "OFF"
+        AntiAFKToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleFOV()
+    CheatStates.FOVChanger = not CheatStates.FOVChanger
+    if CheatStates.FOVChanger then
+        local fov = tonumber(FOVInput.Text) or 70
+        Camera.FieldOfView = fov
+        FOVToggle.Text = "ON"
+        FOVToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        Camera.FieldOfView = OriginalFOV
+        FOVToggle.Text = "OFF"
+        FOVToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleWalkOnWater()
+    CheatStates.WalkOnWater = not CheatStates.WalkOnWater
+    if CheatStates.WalkOnWater then
+        Connections.WalkOnWater = RunService.Heartbeat:Connect(function()
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj.Name == "Water" or obj.Material == Enum.Material.Water then
+                        obj.CanCollide = true
+                    end
+                end
+            end
+        end)
+        WaterWalkToggle.Text = "ON"
+        WaterWalkToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.WalkOnWater then
+            Connections.WalkOnWater:Disconnect()
+        end
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj.Name == "Water" or obj.Material == Enum.Material.Water then
+                obj.CanCollide = false
+            end
+        end
+        WaterWalkToggle.Text = "OFF"
+        WaterWalkToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleInfiniteYield()
+    CheatStates.InfiniteYield = not CheatStates.InfiniteYield
+    if CheatStates.InfiniteYield then
+        -- Загрузка Infinite Yield
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+        InfYieldToggle.Text = "ON"
+        InfYieldToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        InfYieldToggle.Text = "OFF"
+        InfYieldToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+-- Подключение всех кнопок
+SpeedToggle.MouseButton1Click:Connect(ToggleSpeed)
+JumpToggle.MouseButton1Click:Connect(ToggleJumpPower)
+FlyToggle.MouseButton1Click:Connect(ToggleFly)
+NoclipToggle.MouseButton1Click:Connect(ToggleNoclip)
+ESPToggle.MouseButton1Click:Connect(ToggleESP)
+FullbrightToggle.MouseButton1Click:Connect(ToggleFullbright)
+InfJumpToggle.MouseButton1Click:Connect(ToggleInfiniteJump)
+ClickTPToggle.MouseButton1Click:Connect(ToggleClickTP)
+SpinbotToggle.MouseButton1Click:Connect(ToggleSpinbot)
+GodmodeToggle.MouseButton1Click:Connect(ToggleGodmode)
+AutoRespawnToggle.MouseButton1Click:Connect(ToggleAutoRespawn)
+AntiAFKToggle.MouseButton1Click:Connect(ToggleAntiAFK)
+FOVToggle.MouseButton1Click:Connect(ToggleFOV)
+WaterWalkToggle.MouseButton1Click:Connect(ToggleWalkOnWater)
+InfYieldToggle.MouseButton1Click:Connect(ToggleInfiniteYield)
+
+-- Дополнительные функции
+-- Быстрые команды через чат
+local function ProcessCommand(message)
+    local args = string.split(message, " ")
+    local cmd = args[1]:lower()
+    
+    if cmd == "/speed" and args[2] then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = tonumber(args[2]) or 16
+        end
+    elseif cmd == "/jump" and args[2] then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.JumpPower = tonumber(args[2]) or 50
+        end
+    elseif cmd == "/fov" and args[2] then
+        Camera.FieldOfView = tonumber(args[2]) or 70
+    elseif cmd == "/tp" and args[2] then
+        local targetPlayer = Players:FindFirstChild(args[2])
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+            end
+        end
+    elseif cmd == "/bring" and args[2] then
+        local targetPlayer = Players:FindFirstChild(args[2])
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                targetPlayer.Character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame
+            end
+        end
+    elseif cmd == "/kill" and args[2] then
+        local targetPlayer = Players:FindFirstChild(args[2])
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
+            targetPlayer.Character.Humanoid.Health = 0
+        end
+    end
+end
+
+-- Подключение команд чата
+LocalPlayer.Chatted:Connect(ProcessCommand)
+
+-- Кнопки управления окном
+CloseButton.MouseButton1Click:Connect(function()
+    -- Отключаем все читы при закрытии
+    for name, state in pairs(CheatStates) do
+        if state then
+            CheatStates[name] = false
+        end
+    end
+    for _, connection in pairs(Connections) do
+        if connection then
+            connection:Disconnect()
+        end
+    end
+    ScreenGui:Destroy()
+end)
+
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        MainFrame:TweenSize(UDim2.new(0, 320, 0, 32), "Out", "Quad", 0.3, true)
+        Shadow:TweenSize(UDim2.new(0, 320, 0, 32), "Out", "Quad", 0.3, true)
+        ScrollFrame.Visible = false
+    else
+        MainFrame:TweenSize(UDim2.new(0, 320, 0, 420), "Out", "Quad", 0.3, true)
+        Shadow:TweenSize(UDim2.new(0, 320, 0, 420), "Out", "Quad", 0.3, true)
+        wait(0.3)
+        ScrollFrame.Visible = true
+    end
+end)
+
+-- Горячие клавиши
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.Insert then
+        ScreenGui.Enabled = not ScreenGui.Enabled
+    elseif input.KeyCode == Enum.KeyCode.Delete then
+        -- Паника! Отключить все читы
+        for name, state in pairs(CheatStates) do
+            if state then
+                CheatStates[name] = false
+            end
+        end
+        for _, connection in pairs(Connections) do
+            if connection then
+                connection:Disconnect()
+            end
+        end
+        -- Восстановление стандартных значений
+        local character = LocalPlayer.Character
+        if character then
+            if character:FindFirstChild("Humanoid") then
+                character.Humanoid.WalkSpeed = 16
+                character.Humanoid.JumpPower = 50
+                character.Humanoid.MaxHealth = 100
+                character.Humanoid.Health = 100
+            end
+            if character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart:FindFirstChild("BodyVelocity") then
+                character.HumanoidRootPart.BodyVelocity:Destroy()
+            end
+        end
+        Camera.FieldOfView = OriginalFOV
+        -- Сброс визуального состояния кнопок
+        for _, frame in pairs(ScrollFrame:GetChildren()) do
+            if frame:FindFirstChild("ToggleButton") then
+                frame.ToggleButton.Text = "OFF"
+                frame.ToggleButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+            end
+        end
+    elseif input.KeyCode == Enum.KeyCode.Home then
+        -- Быстрое включение основных читов
+        if not CheatStates.Speed then ToggleSpeed() end
+        if not CheatStates.Fly then ToggleFly() end
+        if not CheatStates.Noclip then ToggleNoclip() end
+        if not CheatStates.InfiniteJump then ToggleInfiniteJump() end
+    end
+end)
+
+-- Автосохранение позиций игроков для телепортации
+local PlayerPositions = {}
+spawn(function()
+    while wait(1) do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                PlayerPositions[player.Name] = player.Character.HumanoidRootPart.Position
+            end
+        end
+    end
+end)
+
+-- Система уведомлений
+local function CreateNotification(text, color, duration)
+    local NotifGui = Instance.new("ScreenGui")
+    local NotifFrame = Instance.new("Frame")
+    local NotifLabel = Instance.new("TextLabel")
+    
+    NotifGui.Name = "Notification"
+    NotifGui.Parent = LocalPlayer.PlayerGui
+    
+    NotifFrame.Parent = NotifGui
+    NotifFrame.BackgroundColor3 = color or Color3.fromRGB(50, 50, 70)
+    NotifFrame.BorderSizePixel = 0
+    NotifFrame.Position = UDim2.new(1, 0, 0, 50)
+    NotifFrame.Size = UDim2.new(0, 250, 0, 40)
+    
+    local NotifCorner = Instance.new("UICorner")
+    NotifCorner.CornerRadius = UDim.new(0, 8)
+    NotifCorner.Parent = NotifFrame
+    
+    NotifLabel.Parent = NotifFrame
+    NotifLabel.BackgroundTransparency = 1
+    NotifLabel.Size = UDim2.new(1, 0, 1, 0)
+    NotifLabel.Font = Enum.Font.GothamSemibold
+    NotifLabel.Text = text
+    NotifLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    NotifLabel.TextSize = 12
+    
+    -- Анимация появления
+    NotifFrame:TweenPosition(UDim2.new(1, -260, 0, 50), "Out", "Quad", 0.5, true)
+    
+    -- Исчезновение
+    wait(duration or 3)
+    NotifFrame:TweenPosition(UDim2.new(1, 0, 0, 50), "Out", "Quad", 0.5, true)
+    wait(0.5)
+    NotifGui:Destroy()
+end
+
+-- Приветственное сообщение
+spawn(function()
+    wait(1)
+    CreateNotification("🔥 ROBLOX HACKS загружено!", Color3.fromRGB(40, 167, 69), 4)
+    wait(1)
+    CreateNotification("INSERT - меню | DELETE - паника | HOME - быстрые читы", Color3.fromRGB(255, 193, 7), 6)
+    wait(1)
+    CreateNotification("CTRL+Click - телепорт | Команды чата доступны", Color3.fromRGB(0, 123, 255), 5)
+end)
+
+print("🔥 Расширенное Roblox Cheat Menu загружено!")
+print("📋 Горячие клавиши:")
+print("   INSERT - показать/скрыть меню")
+print("   DELETE - экстренное отключение всех читов")
+print("   HOME - быстро включить основные читы")
+print("   CTRL+Click - телепорт по клику мыши")
+print("💬 Команды чата:")
+print("   /speed [число] - изменить скорость")
+print("   /jump [число] - изменить силу прыжка")
+print("   /fov [число] - изменить поле зрения")
+print("   /tp [имя] - телепорт к игроку")
+print("   /bring [имя] - притянуть игрока")
+print("   /kill [имя] - убить игрока")
