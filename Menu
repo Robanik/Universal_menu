@@ -1,0 +1,495 @@
+-- Roblox Advanced Cheat Menu Script (Компактная версия)
+-- Вставьте этот код в эксплоит (Synapse X, KRNL, Script-Ware и т.д.)
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local TeleportService = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local Camera = Workspace.CurrentCamera
+
+-- Переменные читов
+local CheatStates = {
+    Speed = false,
+    JumpPower = false,
+    Fly = false,
+    Noclip = false,
+    ESP = false,
+    Fullbright = false,
+    InfiniteJump = false,
+    ClickTP = false,
+    Spinbot = false,
+    AutoRespawn = false,
+    AntiAFK = false,
+    FOVChanger = false,
+    WalkOnWater = false,
+    Godmode = false,
+    InfiniteYield = false
+}
+
+local Connections = {}
+local FlySpeed = 50
+local SpinSpeed = 10
+local OriginalFOV = Camera.FieldOfView
+
+-- Создание GUI (Компактный дизайн)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local MinimizeButton = Instance.new("TextButton")
+local ScrollFrame = Instance.new("ScrollingFrame")
+
+-- Настройка ScreenGui
+ScreenGui.Name = "CompactCheatMenu"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Главный фрейм (меньший размер)
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.7, 0, 0.15, 0)
+MainFrame.Size = UDim2.new(0, 320, 0, 420)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 10)
+Corner.Parent = MainFrame
+
+-- Тень
+local Shadow = Instance.new("Frame")
+Shadow.Name = "Shadow"
+Shadow.Parent = ScreenGui
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.8
+Shadow.BorderSizePixel = 0
+Shadow.Position = UDim2.new(0.7, 3, 0.15, 3)
+Shadow.Size = UDim2.new(0, 320, 0, 420)
+Shadow.ZIndex = 0
+
+local ShadowCorner = Instance.new("UICorner")
+ShadowCorner.CornerRadius = UDim.new(0, 10)
+ShadowCorner.Parent = Shadow
+
+-- Верхняя панель (меньшая)
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 32)
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.Parent = TopBar
+
+-- Заголовок (меньший шрифт)
+Title.Name = "Title"
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "🔥 ROBLOX HACKS"
+Title.TextColor3 = Color3.fromRGB(255, 100, 100)
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Кнопки управления (меньшие)
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = TopBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -28, 0, 6)
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 4)
+CloseCorner.Parent = CloseButton
+
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Parent = TopBar
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+MinimizeButton.BorderSizePixel = 0
+MinimizeButton.Position = UDim2.new(1, -52, 0, 6)
+MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Text = "–"
+MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+MinimizeButton.TextSize = 12
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 4)
+MinCorner.Parent = MinimizeButton
+
+-- Компактный скроллинг фрейм
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Parent = MainFrame
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.Position = UDim2.new(0, 0, 0, 38)
+ScrollFrame.Size = UDim2.new(1, 0, 1, -38)
+ScrollFrame.ScrollBarThickness = 4
+
+-- Компактная функция создания чит-элемента
+local function CreateCompactCheatItem(name, description, yPos, hasInput, inputPlaceholder)
+    local ItemFrame = Instance.new("Frame")
+    local ItemBG = Instance.new("Frame")
+    local NameLabel = Instance.new("TextLabel")
+    local DescLabel = Instance.new("TextLabel")
+    local ToggleButton = Instance.new("TextButton")
+    local InputBox
+    
+    ItemFrame.Name = name .. "Frame"
+    ItemFrame.Parent = ScrollFrame
+    ItemFrame.BackgroundTransparency = 1
+    ItemFrame.Position = UDim2.new(0, 8, 0, yPos)
+    ItemFrame.Size = UDim2.new(1, -16, 0, hasInput and 65 or 45)
+    
+    ItemBG.Name = "Background"
+    ItemBG.Parent = ItemFrame
+    ItemBG.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    ItemBG.BorderSizePixel = 0
+    ItemBG.Size = UDim2.new(1, 0, 1, 0)
+    
+    local BGCorner = Instance.new("UICorner")
+    BGCorner.CornerRadius = UDim.new(0, 6)
+    BGCorner.Parent = ItemBG
+    
+    NameLabel.Name = "NameLabel"
+    NameLabel.Parent = ItemFrame
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Position = UDim2.new(0, 10, 0, 4)
+    NameLabel.Size = UDim2.new(0, 180, 0, 16)
+    NameLabel.Font = Enum.Font.GothamSemibold
+    NameLabel.Text = name
+    NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    NameLabel.TextSize = 12
+    NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    DescLabel.Name = "DescLabel"
+    DescLabel.Parent = ItemFrame
+    DescLabel.BackgroundTransparency = 1
+    DescLabel.Position = UDim2.new(0, 10, 0, 20)
+    DescLabel.Size = UDim2.new(0, 180, 0, 14)
+    DescLabel.Font = Enum.Font.Gotham
+    DescLabel.Text = description
+    DescLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    DescLabel.TextSize = 9
+    DescLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    ToggleButton.Name = "ToggleButton"
+    ToggleButton.Parent = ItemFrame
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Position = UDim2.new(1, -50, 0, 8)
+    ToggleButton.Size = UDim2.new(0, 45, 0, 20)
+    ToggleButton.Font = Enum.Font.GothamBold
+    ToggleButton.Text = "OFF"
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.TextSize = 10
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 4)
+    ToggleCorner.Parent = ToggleButton
+    
+    if hasInput then
+        InputBox = Instance.new("TextBox")
+        InputBox.Name = "InputBox"
+        InputBox.Parent = ItemFrame
+        InputBox.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+        InputBox.BorderSizePixel = 0
+        InputBox.Position = UDim2.new(0, 10, 0, 40)
+        InputBox.Size = UDim2.new(1, -70, 0, 20)
+        InputBox.Font = Enum.Font.Gotham
+        InputBox.PlaceholderText = inputPlaceholder or "Значение..."
+        InputBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+        InputBox.Text = ""
+        InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        InputBox.TextSize = 10
+        
+        local InputCorner = Instance.new("UICorner")
+        InputCorner.CornerRadius = UDim.new(0, 4)
+        InputCorner.Parent = InputBox
+    end
+    
+    return ItemFrame, ToggleButton, InputBox
+end
+
+-- Создание всех читов (компактно)
+local yPosition = 5
+local SpeedItem, SpeedToggle, SpeedInput = CreateCompactCheatItem("⚡ Скорость", "Изменение скорости ходьбы", yPosition, true, "16")
+yPosition = yPosition + 75
+
+local JumpItem, JumpToggle, JumpInput = CreateCompactCheatItem("🦘 Прыжок", "Увеличение силы прыжка", yPosition, true, "50")
+yPosition = yPosition + 75
+
+local FlyItem, FlyToggle, FlySpeedInput = CreateCompactCheatItem("🚁 Полет", "Полет с настройкой скорости", yPosition, true, "50")
+yPosition = yPosition + 75
+
+local NoclipItem, NoclipToggle = CreateCompactCheatItem("👻 Ноклип", "Проход сквозь стены", yPosition, false)
+yPosition = yPosition + 55
+
+local ESPItem, ESPToggle = CreateCompactCheatItem("👁️ ESP", "Подсветка игроков", yPosition, false)
+yPosition = yPosition + 55
+
+local FullbrightItem, FullbrightToggle = CreateCompactCheatItem("💡 Яркость", "Полное освещение", yPosition, false)
+yPosition = yPosition + 55
+
+local InfJumpItem, InfJumpToggle = CreateCompactCheatItem("🔄 Беск. прыжки", "Прыжки в воздухе", yPosition, false)
+yPosition = yPosition + 55
+
+local ClickTPItem, ClickTPToggle = CreateCompactCheatItem("📍 Клик ТП", "Телепорт по клику мыши", yPosition, false)
+yPosition = yPosition + 55
+
+local SpinbotItem, SpinbotToggle, SpinSpeedInput = CreateCompactCheatItem("🌀 Спинбот", "Вращение персонажа", yPosition, true, "10")
+yPosition = yPosition + 75
+
+local GodmodeItem, GodmodeToggle = CreateCompactCheatItem("🛡️ Бессмертие", "Невосприимчивость к урону", yPosition, false)
+yPosition = yPosition + 55
+
+local AutoRespawnItem, AutoRespawnToggle = CreateCompactCheatItem("⚰️ Авто-возрождение", "Автоматическое возрождение", yPosition, false)
+yPosition = yPosition + 55
+
+local AntiAFKItem, AntiAFKToggle = CreateCompactCheatItem("💤 Анти-АФК", "Предотвращение кика", yPosition, false)
+yPosition = yPosition + 55
+
+local FOVItem, FOVToggle, FOVInput = CreateCompactCheatItem("📷 Обзор", "Изменение поля зрения", yPosition, true, "70")
+yPosition = yPosition + 75
+
+local WaterWalkItem, WaterWalkToggle = CreateCompactCheatItem("🌊 Ходьба по воде", "Хождение по поверхности воды", yPosition, false)
+yPosition = yPosition + 55
+
+local InfYieldItem, InfYieldToggle = CreateCompactCheatItem("🔧 Infinite Yield", "Админ команды", yPosition, false)
+yPosition = yPosition + 55
+
+-- Обновляем размер ScrollFrame
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition + 10)
+
+-- Расширенные функции читов
+local function ToggleSpeed()
+    CheatStates.Speed = not CheatStates.Speed
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("Humanoid") then
+        if CheatStates.Speed then
+            local speed = tonumber(SpeedInput.Text) or 16
+            character.Humanoid.WalkSpeed = speed
+            SpeedToggle.Text = "ON"
+            SpeedToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+        else
+            character.Humanoid.WalkSpeed = 16
+            SpeedToggle.Text = "OFF"
+            SpeedToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+        end
+    end
+end
+
+local function ToggleJumpPower()
+    CheatStates.JumpPower = not CheatStates.JumpPower
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("Humanoid") then
+        if CheatStates.JumpPower then
+            local jumpPower = tonumber(JumpInput.Text) or 50
+            character.Humanoid.JumpPower = jumpPower
+            JumpToggle.Text = "ON"
+            JumpToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+        else
+            character.Humanoid.JumpPower = 50
+            JumpToggle.Text = "OFF"
+            JumpToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+        end
+    end
+end
+
+local function ToggleFly()
+    CheatStates.Fly = not CheatStates.Fly
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        if CheatStates.Fly then
+            FlySpeed = tonumber(FlySpeedInput.Text) or 50
+            local BodyVelocity = Instance.new("BodyVelocity")
+            BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            BodyVelocity.Parent = character.HumanoidRootPart
+            
+            FlyToggle.Text = "ON"
+            FlyToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+            
+            Connections.Fly = RunService.Heartbeat:Connect(function()
+                if not CheatStates.Fly then return end
+                local camera = workspace.CurrentCamera
+                local moveVector = Vector3.new(0, 0, 0)
+                
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveVector = moveVector + camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveVector = moveVector - camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveVector = moveVector - camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveVector = moveVector + camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    moveVector = moveVector + Vector3.new(0, 1, 0)
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    moveVector = moveVector - Vector3.new(0, 1, 0)
+                end
+                
+                BodyVelocity.Velocity = moveVector * FlySpeed
+            end)
+        else
+            if character.HumanoidRootPart:FindFirstChild("BodyVelocity") then
+                character.HumanoidRootPart.BodyVelocity:Destroy()
+            end
+            if Connections.Fly then
+                Connections.Fly:Disconnect()
+            end
+            FlyToggle.Text = "OFF"
+            FlyToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+        end
+    end
+end
+
+local function ToggleNoclip()
+    CheatStates.Noclip = not CheatStates.Noclip
+    if CheatStates.Noclip then
+        Connections.Noclip = RunService.Stepped:Connect(function()
+            local character = LocalPlayer.Character
+            if character then
+                for _, part in pairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+        NoclipToggle.Text = "ON"
+        NoclipToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.Noclip then
+            Connections.Noclip:Disconnect()
+        end
+        local character = LocalPlayer.Character
+        if character then
+            for _, part in pairs(character:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = true
+                end
+            end
+        end
+        NoclipToggle.Text = "OFF"
+        NoclipToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleESP()
+    CheatStates.ESP = not CheatStates.ESP
+    if CheatStates.ESP then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local BillboardGui = Instance.new("BillboardGui")
+                local NameLabel = Instance.new("TextLabel")
+                local HealthBar = Instance.new("Frame")
+                local HealthFill = Instance.new("Frame")
+                
+                BillboardGui.Name = "ESP"
+                BillboardGui.Parent = player.Character.HumanoidRootPart
+                BillboardGui.Size = UDim2.new(0, 120, 0, 60)
+                BillboardGui.Adornee = player.Character.HumanoidRootPart
+                BillboardGui.AlwaysOnTop = true
+                
+                NameLabel.Parent = BillboardGui
+                NameLabel.Size = UDim2.new(1, 0, 0.6, 0)
+                NameLabel.BackgroundTransparency = 1
+                NameLabel.Text = player.Name
+                NameLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+                NameLabel.TextStrokeTransparency = 0
+                NameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                NameLabel.Font = Enum.Font.GothamBold
+                NameLabel.TextSize = 12
+                
+                HealthBar.Name = "HealthBar"
+                HealthBar.Parent = BillboardGui
+                HealthBar.Position = UDim2.new(0, 0, 0.6, 0)
+                HealthBar.Size = UDim2.new(1, 0, 0.4, 0)
+                HealthBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                HealthBar.BorderSizePixel = 0
+                
+                HealthFill.Name = "HealthFill"
+                HealthFill.Parent = HealthBar
+                HealthFill.Size = UDim2.new(1, 0, 1, 0)
+                HealthFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                HealthFill.BorderSizePixel = 0
+            end
+        end
+        ESPToggle.Text = "ON"
+        ESPToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local esp = player.Character.HumanoidRootPart:FindFirstChild("ESP")
+                if esp then esp:Destroy() end
+            end
+        end
+        ESPToggle.Text = "OFF"
+        ESPToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleFullbright()
+    CheatStates.Fullbright = not CheatStates.Fullbright
+    if CheatStates.Fullbright then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 12
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        FullbrightToggle.Text = "ON"
+        FullbrightToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 14.5
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = true
+        Lighting.Ambient = Color3.fromRGB(70, 70, 70)
+        FullbrightToggle.Text = "OFF"
+        FullbrightToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
+
+local function ToggleInfiniteJump()
+    CheatStates.InfiniteJump = not CheatStates.InfiniteJump
+    if CheatStates.InfiniteJump then
+        Connections.InfiniteJump = UserInputService.JumpRequest:Connect(function()
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
+        InfJumpToggle.Text = "ON"
+        InfJumpToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+    else
+        if Connections.InfiniteJump then
+            Connections.InfiniteJump:Disconnect()
+        end
+        InfJumpToggle.Text = "OFF"
+        InfJumpToggle.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+    end
+end
